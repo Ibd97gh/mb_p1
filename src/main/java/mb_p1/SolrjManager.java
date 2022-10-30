@@ -37,7 +37,7 @@ public class SolrjManager {
 		
 	}
 	
-	public void query(String url, String queryString) throws SolrServerException, IOException
+	public SolrDocumentList query(String url, String queryString) throws SolrServerException, IOException
 	{
 
 		HttpSolrClient solr = new HttpSolrClient.Builder(url).build();
@@ -52,13 +52,7 @@ public class SolrjManager {
         QueryResponse rsp = solr.query(query);
         SolrDocumentList docs = rsp.getResults();
         
-        for (int i = 0; i < docs.size(); ++i)
-        {
-        	
-            System.out.println(docs.get(i));
-            
-        }
-		
+        return docs;
 	}
 	
 }

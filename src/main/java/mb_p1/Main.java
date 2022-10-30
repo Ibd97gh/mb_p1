@@ -5,24 +5,26 @@ import java.util.LinkedList;
 import java.util.UUID;
 
 import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.common.SolrDocumentList;
 
 public class Main {
 
 	public static void main(String[] args)
 	{
 		
-		insertDocuments();
+		//insertDocuments_CISI_ALL();
+		doQuery_CISI_QRY("1");
 		
 	}
 	
-	public static void insertDocuments()
+	public static void insertDocuments_CISI_ALL()
 	{
 		try
 		{
 			FileManager filemgr = new FileManager("./corpus/CISI.ALL");
 			SolrjManager solrmgr = new SolrjManager();
 			
-			LinkedList<String[]> list = filemgr.getDocuments();
+			LinkedList<String[]> list = filemgr.getDocuments_CISI_ALL();
 			String[] attributes = {"id", "title", "author", "content"};
 			
 			for(String[] s: list)
@@ -39,6 +41,30 @@ public class Main {
 		}
 	}
 	
+	public static void doQuery_CISI_QRY(String queryID)
+	{
+		try
+		{
+			FileManager filemgr = new FileManager("./corpus/CISI.QRY");
+			SolrjManager solrmgr = new SolrjManager();
+			
+			String queryString = filemgr.getQuery_CISI_QRY(queryID);
+			
+			SolrDocumentList docs = solrmgr.query("http://localhost:8983/solr/coleccion", queryString);
+
+	        for (int i = 0; i < docs.size(); ++i)
+	        {
+	        	
+	            System.out.println(docs.get(i));
+	            
+	        }
+		}
+		catch (SolrServerException | IOException e)
+		{
+			e.printStackTrace();
+		}
+	}
+	
 	public static void queryExample()
 	{
 		
@@ -47,7 +73,14 @@ public class Main {
 		try
 		{
 			
-			solrmgr.query("http://localhost:8983/solr/coleccion", "*:*");
+			SolrDocumentList docs = solrmgr.query("http://localhost:8983/solr/coleccion", "*:*");
+
+	        for (int i = 0; i < docs.size(); ++i)
+	        {
+	        	
+	            System.out.println(docs.get(i));
+	            
+	        }
 			
 		}
 		catch (SolrServerException | IOException e)
@@ -83,7 +116,7 @@ public class Main {
 		try
 		{
 			FileManager filemgr = new FileManager("./corpus/file.txt");
-			LinkedList<String[]> list = filemgr.getDocuments();
+			LinkedList<String[]> list = filemgr.getDocuments_CISI_ALL();
 			
 			for(int i = 0; i < list.size(); i++)
 			{
