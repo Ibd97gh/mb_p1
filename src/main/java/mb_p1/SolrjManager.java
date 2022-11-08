@@ -13,11 +13,6 @@ import org.apache.solr.common.SolrDocumentList;
 @SuppressWarnings("deprecation")
 public class SolrjManager {
 	
-	public SolrjManager()
-	{
-		
-	}
-	
 	public void insert(String url, String collection, String[] attributes, String[] values) throws SolrServerException, IOException
 	{
 
@@ -26,9 +21,7 @@ public class SolrjManager {
 		final SolrInputDocument document = new SolrInputDocument();
 		for(int i = 0; i < attributes.length; i++)
 		{
-			
 			document.addField(attributes[i], values[i]);
-			
 		}
 		
 		final UpdateResponse updateResponse = client.add(collection, document);
@@ -37,7 +30,7 @@ public class SolrjManager {
 		
 	}
 	
-	public SolrDocumentList query(String url, String queryString) throws SolrServerException, IOException
+	public SolrDocumentList query(String url, String queryString, String[] filters, String[] fields) throws SolrServerException, IOException
 	{
 
 		HttpSolrClient solr = new HttpSolrClient.Builder(url).build();
@@ -45,9 +38,22 @@ public class SolrjManager {
 		SolrQuery query = new SolrQuery();
 		
         query.setQuery(queryString);
-        //query.setQuery("Apple");
-        //query.addFilterQuery("cat:electronics");
-        //query.setFields("id","price","merchant","cat","store");
+        
+        if(filters != null)
+        {
+        	for(String filter: filters)
+            {
+            	query.addFilterQuery(filter);
+            }
+        }
+
+        if(fields != null)
+        {
+        	for(String field: fields)
+	        {
+	        	query.addField(field);
+	        }
+        }
         
         QueryResponse rsp = solr.query(query);
         SolrDocumentList docs = rsp.getResults();

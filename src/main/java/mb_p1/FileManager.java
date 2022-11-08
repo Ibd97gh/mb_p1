@@ -18,89 +18,187 @@ public class FileManager
         lastLine = "";
 	}
 	
-	public LinkedList<String[]> getDocuments_CISI_ALL()
+	// reads a document file in cisi format
+	public LinkedList<String[]> readDocumentFile()
 	{
+		int n = 0;
+		
 		LinkedList<String[]> result = new LinkedList<String[]>();
 	
 		// reading document:
-		// .I $id
-		// .T \n $title
-		// .A \n $author
-		// .W \n $content
-		// .X \n $other
-		// title, author, content and other may have multiple lines
+		// .I id
+		// .T title
+		// .A author
+		// .W content
+		// .X other
 
-		String doc_id;
-		String doc_title;
-		String doc_author;
-		String doc_content;
+		lastLine = getLine();
 		
-		lastLine = scanner.nextLine();
-		while(scanner.hasNextLine())
+		// while there are new lines in the file
+		while(!lastLine.isEmpty())
 		{
+			String doc_id = "";
+			String doc_title = "";
+			String doc_author = "";
+			String doc_content = "";
 			
-			// read id
-			String[] words = lastLine.strip().split(" +");
-			doc_id = words[1];
+			// first, read id
+			if(lastLine.strip().matches(".I +[0-9]+"))
+			{
+				String[] tokens = lastLine.strip().split(" +");
+				doc_id = tokens[1];
+				lastLine = getLine();
+			}
+			else
+			{
+				System.out.println(lastLine);
+				System.out.println("ERROR");
+				return null; // ERROR
+			}
 			
-			// read title
-			scanner.nextLine(); // .T
-			doc_title = readPart("\\.A", true);
-			doc_author = readPart("\\.W|A", true);
-			while(!lastLine.strip().matches("\\.W")) doc_author = doc_author + "\n" + readPart("\\.W|A", true);
-			doc_content = readPart("\\.X", true); // read content
-			readPart("\\.I [0-9]+", false); // read other
+			// while last line does not belong to the next document
+			while(!lastLine.strip().matches("\\.I +[0-9]+") && !lastLine.isEmpty())
+			{
+				String firstLinePattern = " *\\.[ITAWX] *[0-9]* *"; // these lines should not have \t characters
+				switch(lastLine.strip().charAt(1))
+				{
+				case 'T':
+					if(doc_title.isEmpty()) doc_title = readPart(firstLinePattern, true);
+					else doc_title = doc_title + " " + readPart(firstLinePattern, true);
+					break;
+				case 'A':
+					if(doc_author.isEmpty()) doc_author = readPart(firstLinePattern, true);
+					else doc_author = doc_author + " " + readPart(firstLinePattern, true);
+					break;
+				case 'W':
+					if(doc_content.isEmpty()) doc_content = readPart(firstLinePattern, true);
+					else doc_content = doc_content + " " + readPart(firstLinePattern, true);
+					break;
+				case 'X':
+					readPart(firstLinePattern, false);
+					break;
+				default:
+					System.out.println(lastLine);
+					System.out.println("ERROR");
+					return null; // ERROR
+				}
+			}
+
+			doc_id = doc_id.strip();
+			doc_title = doc_title.strip();
+			doc_author = doc_author.strip();
+			doc_content = doc_content.strip();
 			
-			// add document
 			String[] document = {doc_id, doc_title, doc_author, doc_content};
 			result.add(document);
+			
+			n++;
+			System.out.println("Read document " + n);
 		}
 		
 		return result;
 	}
-	
-	public String getQuery_CISI_QRY(String queryID)
+
+	// reads a query file in cisi format
+	public String readDocumentQuery(String queryID)
 	{
-		lastLine = scanner.nextLine();
-		while(scanner.hasNextLine())
+		lastLine = getLine();
+		
+		// find the query with the specified id
+		while(!lastLine.strip().matches(".I +" + queryID) && !lastLine.isEmpty())
 		{
-			if(lastLine.strip().matches("\\.I +" + queryID))
-			{
-				// read document
-				// we only read .W
-				readPart("\\.W", false);
-				String doc_content = readPart("\\..", true);
-			
-				String[] splitContent = doc_content.strip().split("([ \t\n])+");
-				
-				String query = splitContent[0];
-				for(int i = 1; i < 5; i++) query = query + " " + splitContent[i];
-				
-				// return query
-				return query;
-			}
+			lastLine = getLine();
 		}
 		
-		return "*:*";
+		// read the query and extract its fields
+
+		String doc_id = "";
+		String doc_title = "";
+		String doc_author = "";
+		String doc_content = "";
+		
+		// first, read id
+		if(lastLine.strip().matches(".I +[0-9]+"))
+		{
+			String[] tokens = lastLine.strip().split(" +");
+			doc_id = tokens[1];
+			lastLine = getLine();
+		}
+		else
+		{
+			System.out.println(lastLine);
+			System.out.println("ERROR");
+			return null; // ERROR
+		}
+		
+		// while last line does not belong to the next document
+		while(!lastLine.strip().matches("\\.I +[0-9]+") && !lastLine.isEmpty())
+		{
+			String firstLinePattern = " *\\.[ITAWX] *[0-9]* *"; // these lines should not have \t characters
+			switch(lastLine.strip().charAt(1))
+			{
+			case 'T':
+				if(doc_title.isEmpty()) doc_title = readPart(firstLinePattern, true);
+				else doc_title = doc_title + " " + readPart(firstLinePattern, true);
+				break;
+			case 'A':
+				if(doc_author.isEmpty()) doc_author = readPart(firstLinePattern, true);
+				else doc_author = doc_author + " " + readPart(firstLinePattern, true);
+				break;
+			case 'W':
+				if(doc_content.isEmpty()) doc_content = readPart(firstLinePattern, true);
+				else doc_content = doc_content + " " + readPart(firstLinePattern, true);
+				break;
+			case 'X':
+				readPart(firstLinePattern, false);
+				break;
+			default:
+				System.out.println(lastLine);
+				System.out.println("ERROR");
+				return null; // ERROR
+			}
+		}
+
+		doc_id = doc_id.strip();
+		doc_title = doc_title.strip();
+		doc_author = doc_author.strip();
+		doc_content = doc_content.strip();
+		
+		return "";
 	}
 	
+	// read lines and add them to a String until one line matches the pattern
 	private String readPart(String pattern, boolean saveContent)
 	{
 		String content = "";
-		lastLine = scanner.nextLine();
+		lastLine = getLine();
 		
-		while(scanner.hasNextLine() && !lastLine.strip().matches(pattern))
+		// while the new line exists and does not match the pattern
+		while(!lastLine.matches(pattern) && !lastLine.isEmpty())
 		{
-			if(saveContent) content = content + "\n" + lastLine;
-			lastLine = scanner.nextLine();
-		}
-		
-		if(!scanner.hasNextLine())
-		{
-			if(saveContent) content = content + "\n" + lastLine;
+			if(saveContent)
+			{
+				if(content.isEmpty()) content = lastLine;
+				else content = content + "\n" + lastLine;
+			}
+			lastLine = getLine();
 		}
 		
 		return content;
+	}
+	
+	// returns the next line that is not empty or "" if it reaches end of file
+	private String getLine()
+	{
+		lastLine = "";
+		
+		while(lastLine.isBlank() && scanner.hasNextLine())
+		{
+			lastLine = scanner.nextLine();
+		}
+		
+		if(lastLine.isBlank()) return ""; // end of file
+		else return lastLine; // non-empty line found
 	}
 	
 }

@@ -12,26 +12,32 @@ public class Main {
 	public static void main(String[] args)
 	{
 		
-		//insertDocuments_CISI_ALL();
-		doQuery_CISI_QRY("1");
+		//insertDocuments();
+		
+		String queryId = "10";
+		String[] filters = {};
+		String[] fields = {};
+		makeQuery(queryId, filters, fields);
 		
 	}
 	
-	public static void insertDocuments_CISI_ALL()
+	public static void insertDocuments()
 	{
 		try
 		{
 			FileManager filemgr = new FileManager("./corpus/CISI.ALL");
 			SolrjManager solrmgr = new SolrjManager();
 			
-			LinkedList<String[]> list = filemgr.getDocuments_CISI_ALL();
+			LinkedList<String[]> list = filemgr.readDocumentFile();
 			String[] attributes = {"id", "title", "author", "content"};
+			
+			if(list == null) return;
 			
 			for(String[] s: list)
 			{
 				
 				solrmgr.insert("http://localhost:8983/solr", "coleccion", attributes, s);
-				System.out.println(s[0]);
+				System.out.println("Inserted document " + s[0]);
 				
 			}
 		}
@@ -41,16 +47,16 @@ public class Main {
 		}
 	}
 	
-	public static void doQuery_CISI_QRY(String queryID)
+	public static void makeQuery(String queryID, String[] filters, String[] fields)
 	{
 		try
 		{
 			FileManager filemgr = new FileManager("./corpus/CISI.QRY");
 			SolrjManager solrmgr = new SolrjManager();
 			
-			String queryString = filemgr.getQuery_CISI_QRY(queryID);
+			String queryStrings = filemgr.readDocumentQuery(queryID);
 			
-			SolrDocumentList docs = solrmgr.query("http://localhost:8983/solr/coleccion", queryString);
+			SolrDocumentList docs = solrmgr.query("http://localhost:8983/solr/coleccion", queryStrings, filters, fields);
 
 	        for (int i = 0; i < docs.size(); ++i)
 	        {
@@ -65,6 +71,7 @@ public class Main {
 		}
 	}
 	
+	/*
 	public static void queryExample()
 	{
 		
@@ -116,7 +123,7 @@ public class Main {
 		try
 		{
 			FileManager filemgr = new FileManager("./corpus/file.txt");
-			LinkedList<String[]> list = filemgr.getDocuments_CISI_ALL();
+			LinkedList<String[]> list = filemgr.readDocumentFile();
 			
 			for(int i = 0; i < list.size(); i++)
 			{
@@ -136,5 +143,5 @@ public class Main {
 		}
 		
 	}
-
+	*/
 }
