@@ -30,13 +30,14 @@ public class SolrjManager {
 		
 	}
 	
-	public SolrDocumentList query(String url, String queryString, String[] filters, String[] fields) throws SolrServerException, IOException
+	public SolrDocumentList query(String url, String queryString, String[] filters, String[] fields, int numRows) throws SolrServerException, IOException
 	{
 
 		HttpSolrClient solr = new HttpSolrClient.Builder(url).build();
 		
 		SolrQuery query = new SolrQuery();
 		
+		query.setRows(numRows);
         query.setQuery(queryString);
         
         if(filters != null)

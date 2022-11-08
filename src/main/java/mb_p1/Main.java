@@ -14,10 +14,9 @@ public class Main {
 		
 		//insertDocuments();
 		
-		String queryId = "1";
 		String[] filters = {};
-		String[] fields = {"id", "title", "author", "content", "score"};
-		makeQuery(queryId, filters, fields);
+		String[] fields = {"id", "score"};
+		makeTRECFile(filters, fields, 10);
 		
 	}
 	
@@ -25,10 +24,10 @@ public class Main {
 	{
 		try
 		{
-			FileManager filemgr = new FileManager("./corpus/CISI.ALL");
+			FileReadManager filerdr = new FileReadManager("./corpus/CISI.ALL");
 			SolrjManager solrmgr = new SolrjManager();
 			
-			LinkedList<String[]> list = filemgr.readDocumentFile();
+			LinkedList<String[]> list = filerdr.readDocumentFile();
 			String[] attributes = {"id", "title", "author", "content"};
 			
 			if(list == null) return;
@@ -47,14 +46,14 @@ public class Main {
 		}
 	}
 	
-	public static void makeQuery(String queryID, String[] filters, String[] fields)
+	public static void query(String queryID, String[] filters, String[] fields, int numRows)
 	{
 		try
 		{
-			FileManager filemgr = new FileManager("./corpus/CISI.QRY");
+			FileReadManager filerdr = new FileReadManager("./corpus/CISI.QRY");
 			SolrjManager solrmgr = new SolrjManager();
 			
-			String[] queryStrings = filemgr.readDocumentQuery(queryID);
+			String[] queryStrings = filerdr.readQueryFileSingle(queryID);
 			
 			// only take the first 5 words:
 			String[] tokens = queryStrings[2].split("[ \n\t]+");
@@ -74,7 +73,7 @@ public class Main {
             System.out.println("____________________________________________________________________________________________________");
             System.out.println("");
 			
-			SolrDocumentList docs = solrmgr.query("http://localhost:8983/solr/coleccion", queryString, filters, fields);
+			SolrDocumentList docs = solrmgr.query("http://localhost:8983/solr/coleccion", queryString, filters, fields, numRows);
 
 	        for (int i = 0; i < docs.size(); ++i)
 	        {
@@ -99,77 +98,74 @@ public class Main {
 		}
 	}
 	
-	/*
-	public static void queryExample()
+	public static void makeTRECFile(String[] filters, String[] fields, int numRows)
 	{
-		
-		SolrjManager solrmgr = new SolrjManager();
-		
 		try
 		{
+			FileReadManager filerdr = new FileReadManager("./corpus/CISI.QRY");
+			FileWriteManager filewtr = new FileWriteManager("./corpus/trec_solr_file");
+			SolrjManager solrmgr = new SolrjManager();
 			
-			SolrDocumentList docs = solrmgr.query("http://localhost:8983/solr/coleccion", "*:*");
-
-	        for (int i = 0; i < docs.size(); ++i)
-	        {
-	        	
-	            System.out.println(docs.get(i));
-	            
-	        }
+			LinkedList<String[]> queryStrings = filerdr.readQueryFile();
 			
-		}
-		catch (SolrServerException | IOException e)
-		{
-			e.printStackTrace();
-		}
-		
-	}
-	
-	public static void insertExample()
-	{
-		
-		SolrjManager solrmgr = new SolrjManager();
-		
-		try
-		{
-			
-			String[] attributes = new String[] {"id", "name", "price"};
-			String[] item = new String[] {UUID.randomUUID().toString(), "Amazon Kindle Paperwhite v10", ""+1000.0};
-			solrmgr.insert("http://localhost:8983/solr", "coleccion", attributes, item);
-			
-		}
-		catch (SolrServerException | IOException e)
-		{
-			e.printStackTrace();
-		}
-		
-	}
-	
-	public static void readExample()
-	{
-		
-		try
-		{
-			FileManager filemgr = new FileManager("./corpus/file.txt");
-			LinkedList<String[]> list = filemgr.readDocumentFile();
-			
-			for(int i = 0; i < list.size(); i++)
+			for(String[] currentQueryValues: queryStrings)
 			{
+				// we dont use the 112th query
+				if(currentQueryValues[0].equals("112")) break;
 				
-				System.out.println("ID: " + list.get(i)[0]);
-				System.out.println("TITLE: " + list.get(i)[1]);
-				System.out.println("AUTHOR:" + list.get(i)[2]);
-				//System.out.println("CONTENT:");
-				//System.out.println(list.get(i)[3]);
-				System.out.println();
+				// construct the query
+				String currentQuery = "";
+				
+				// take only the first 5 words of the content field
+				String currentQueryValuesContent = currentQueryValues[3].replaceAll("[()]+", "");
+				String[] tokens = currentQueryValuesContent.split("[ \n]+");
+				currentQuery = "content:";
+
+				int numTokens = Math.min(5, tokens.length);
+				for(int i = 0; i < numTokens; i++) currentQuery = currentQuery + tokens[i] + " ";
+				currentQuery = currentQuery.strip();
+				
+				// query
+				System.out.println(currentQuery);
+				SolrDocumentList docs = solrmgr.query("http://localhost:8983/solr/coleccion", currentQuery, filters, fields, numRows);
+				
+				for(int i = 0; i < docs.size(); i++)
+				{
+					String documentLine = "";
+
+					// query id
+					documentLine = documentLine + currentQueryValues[0];
+					
+					// iteration (we only do 1)
+					documentLine = documentLine + "\t" + "Q0";
+					
+					// document id
+					String formattedId = String.format("%04d", (String)docs.get(i).get("id"));
+					documentLine = documentLine + "\t" + formattedId;
+					
+					// ranking
+					String formattedRanking = String.format("%02d", (i+1));
+					documentLine = documentLine + "\t" + formattedRanking;
+					
+					// document score
+					//String formattedScore = String.format("%2.7f", value))
+					documentLine = documentLine + "\t" + docs.get(i).get("score");
+					
+					// team
+					documentLine = documentLine + "\t" + "IVAN";
+					
+					filewtr.addLine(documentLine);
+				}
 				
 			}
+			
+			
+			filewtr.closeFile();
 		}
-		catch (IOException e)
+		catch (SolrServerException | IOException e)
 		{
 			e.printStackTrace();
 		}
-		
 	}
-	*/
+	
 }
