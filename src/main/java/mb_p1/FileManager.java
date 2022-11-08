@@ -100,8 +100,17 @@ public class FileManager
 	}
 
 	// reads a query file in cisi format
-	public String readDocumentQuery(String queryID)
+	// the positions of the String array are:
+	// 0- title
+	// 1- author
+	// 2- content
+	public String[] readDocumentQuery(String queryID)
 	{
+		String doc_title = "";
+		String doc_author = "";
+		String doc_content = "";
+		String doc_other = "";
+		
 		lastLine = getLine();
 		
 		// find the query with the specified id
@@ -110,31 +119,19 @@ public class FileManager
 			lastLine = getLine();
 		}
 		
-		// read the query and extract its fields
-
-		String doc_id = "";
-		String doc_title = "";
-		String doc_author = "";
-		String doc_content = "";
-		
-		// first, read id
-		if(lastLine.strip().matches(".I +[0-9]+"))
-		{
-			String[] tokens = lastLine.strip().split(" +");
-			doc_id = tokens[1];
-			lastLine = getLine();
-		}
-		else
+		if(lastLine.isEmpty())
 		{
 			System.out.println(lastLine);
 			System.out.println("ERROR");
 			return null; // ERROR
 		}
 		
-		// while last line does not belong to the next document
+		lastLine = getLine();
+		
+		// while last line does not belong to the next query
 		while(!lastLine.strip().matches("\\.I +[0-9]+") && !lastLine.isEmpty())
 		{
-			String firstLinePattern = " *\\.[ITAWX] *[0-9]* *"; // these lines should not have \t characters
+			String firstLinePattern = " *\\.[ITAWXB] *[0-9]* *"; // these lines should not have \t characters
 			switch(lastLine.strip().charAt(1))
 			{
 			case 'T':
@@ -149,8 +146,9 @@ public class FileManager
 				if(doc_content.isEmpty()) doc_content = readPart(firstLinePattern, true);
 				else doc_content = doc_content + " " + readPart(firstLinePattern, true);
 				break;
-			case 'X':
-				readPart(firstLinePattern, false);
+			case 'B':
+				if(doc_other.isEmpty()) doc_other = readPart(firstLinePattern, true);
+				else doc_other = doc_other + " " + readPart(firstLinePattern, true);
 				break;
 			default:
 				System.out.println(lastLine);
@@ -159,12 +157,11 @@ public class FileManager
 			}
 		}
 
-		doc_id = doc_id.strip();
 		doc_title = doc_title.strip();
 		doc_author = doc_author.strip();
 		doc_content = doc_content.strip();
 		
-		return "";
+		return new String[] {doc_title, doc_author, doc_content, doc_other};
 	}
 	
 	// read lines and add them to a String until one line matches the pattern

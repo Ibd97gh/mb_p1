@@ -14,9 +14,9 @@ public class Main {
 		
 		//insertDocuments();
 		
-		String queryId = "10";
+		String queryId = "1";
 		String[] filters = {};
-		String[] fields = {};
+		String[] fields = {"id", "title", "author", "content", "score"};
 		makeQuery(queryId, filters, fields);
 		
 	}
@@ -54,14 +54,42 @@ public class Main {
 			FileManager filemgr = new FileManager("./corpus/CISI.QRY");
 			SolrjManager solrmgr = new SolrjManager();
 			
-			String queryStrings = filemgr.readDocumentQuery(queryID);
+			String[] queryStrings = filemgr.readDocumentQuery(queryID);
 			
-			SolrDocumentList docs = solrmgr.query("http://localhost:8983/solr/coleccion", queryStrings, filters, fields);
+			// only take the first 5 words:
+			String[] tokens = queryStrings[2].split("[ \n\t]+");
+			String firstWords = "";
+			for(int i = 0; i < 5; i++)
+			{
+				if(firstWords.isBlank()) firstWords = tokens[i];
+				else firstWords = firstWords + " " + tokens[i];
+			}
+			
+			String queryString = "content:" + firstWords;
+
+            System.out.println("");
+			System.out.println("Query: " + queryString);
+            System.out.println("");
+            System.out.println("____________________________________________________________________________________________________");
+            System.out.println("____________________________________________________________________________________________________");
+            System.out.println("");
+			
+			SolrDocumentList docs = solrmgr.query("http://localhost:8983/solr/coleccion", queryString, filters, fields);
 
 	        for (int i = 0; i < docs.size(); ++i)
 	        {
-	        	
-	            System.out.println(docs.get(i));
+
+	        	for(int j = 0; j < fields.length; j++) 
+	        	{
+	        		System.out.println("Field " + fields[j] + ":");
+	        		if(docs.get(i).containsKey(fields[j])) System.out.println(docs.get(i).get(fields[j]));
+	        		else System.out.println("NULL");
+		            System.out.println("----------");
+	        	}
+	            System.out.println("");
+	            System.out.println("____________________________________________________________________________________________________");
+	            System.out.println("____________________________________________________________________________________________________");
+	            System.out.println("");
 	            
 	        }
 		}
