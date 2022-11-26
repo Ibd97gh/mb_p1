@@ -1,4 +1,4 @@
-package mb_p1;
+package io;
 
 import java.io.File;
 import java.io.FileWriter;
