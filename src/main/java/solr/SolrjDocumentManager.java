@@ -34,12 +34,24 @@ public abstract class SolrjDocumentManager
 	}
 	
 	// each String[] has its attributes sorted in the same order as fields
-	public static LinkedList<String[]> query(String collection, String queryString, String[] filters, String[] fields, int numRows) throws SolrServerException, IOException
+	public static LinkedList<String[]> query(String collection, String[] inputFields, String[] inputFieldValues, String[] inputFieldWeights, String[] filters, String[] requestedFields, int numRows) throws SolrServerException, IOException
 	{
 
 		HttpSolrClient solr = new HttpSolrClient.Builder("http://localhost:8983/solr/" + collection).build();
 		
 		SolrQuery query = new SolrQuery();
+		
+		String queryString = "";
+		for(int i = 0; i < inputFields.length; i++)
+		{
+			if(!inputFieldValues[i].isBlank())
+			{
+				if(queryString.isBlank()) queryString = "(" + inputFields[i] + ":" + inputFieldValues[i] + ")^" + inputFieldWeights[i];
+				else queryString = queryString + " OR (" + inputFields[i] + ":" + inputFieldValues[i] + ")^" + inputFieldWeights[i];
+			}
+		}
+		
+		System.out.println(queryString);
 		
 		query.setRows(numRows);
         query.setQuery(queryString);
@@ -52,9 +64,9 @@ public abstract class SolrjDocumentManager
             }
         }
 
-        if(fields != null)
+        if(requestedFields != null)
         {
-        	for(String field: fields)
+        	for(String field: requestedFields)
 	        {
 	        	query.addField(field);
 	        }
@@ -65,15 +77,16 @@ public abstract class SolrjDocumentManager
         LinkedList<String[]> docList = new LinkedList<String[]>();
         for(int i = 0; i < docs.size(); i++)
         {
-        	String[] doc_i = new String[fields.length];
-        	for(int j = 0; j < fields.length; j++)
+        	String[] doc_i = new String[requestedFields.length];
+        	for(int j = 0; j < requestedFields.length; j++)
         	{
-        		doc_i[j] = docs.get(i).get(fields[j]).toString();
+        		doc_i[j] = docs.get(i).get(requestedFields[j]).toString();
         	}
         	docList.add(doc_i);
         }
         
         return docList;
+        
 	}
 	
 }

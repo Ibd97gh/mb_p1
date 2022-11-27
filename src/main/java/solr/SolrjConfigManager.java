@@ -14,6 +14,7 @@ public abstract class SolrjConfigManager
 	
 	public static void clearCollection(String collection) throws SolrServerException, IOException 
 	{
+		
 		String urlString = "http://localhost:8983/solr/" + collection;
 		SolrClient solr = new HttpSolrClient.Builder(urlString).build();
 		
@@ -22,6 +23,7 @@ public abstract class SolrjConfigManager
 		solr.deleteByQuery("*:*");
 
 		solr.commit();
+		
 	}
 
 	/*

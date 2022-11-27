@@ -16,6 +16,8 @@ public class Main
 		
 		try
 		{
+			//clearSolrCollection();
+			//insertDocuments();
 			makeTRECFile();
 		}
 		catch(Exception exception)
@@ -70,11 +72,19 @@ public class Main
 			if(query[0].equals("112")) break;
 			
 			// create the query
-			String queryTerms = "content:" + TextProcessor.extractFirstNWords(TextProcessor.fixString(query[3]), -1);
+			String[] queryFields = {"title", "author", "content"};
+			String[] queryValues = {TextProcessor.fixString(query[1]), TextProcessor.fixString(query[2]), TextProcessor.fixString(query[3])};
+			String[] queryWeights = {"0.8", "0.8", "1.0"};
+			
+			//System.out.println(TextProcessor.fixString(query[1]));
+			//System.out.println(TextProcessor.fixString(query[2]));
+			//System.out.println(TextProcessor.fixString(query[3]));
+			
+			//System.out.println();
+			//System.out.println();
 			
 			// query
-			System.out.println(queryTerms);
-			LinkedList<String[]> docs = SolrjDocumentManager.query("coleccion", queryTerms, filters, fields, numRows);
+			LinkedList<String[]> docs = SolrjDocumentManager.query("coleccion", queryFields, queryValues, queryWeights,filters, fields, numRows);
 			
 			for(int i = 0; i < docs.size(); i++)
 			{

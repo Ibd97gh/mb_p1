@@ -11,6 +11,7 @@ public class FileWriteManager
 	
 	public FileWriteManager(String path) throws IOException
 	{
+		
 		File file = new File(path);
 		if(file.exists())
 		{
@@ -19,6 +20,7 @@ public class FileWriteManager
 		}
 		
 		writer = new FileWriter(file);
+		
 	}
 	
 	public void closeFile() throws IOException

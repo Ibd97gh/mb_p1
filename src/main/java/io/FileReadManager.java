@@ -86,6 +86,7 @@ public abstract class FileReadManager
 		}
 		
 		return result;
+		
 	}
 	
 	// reads a query file in cisi format
@@ -171,11 +172,13 @@ public abstract class FileReadManager
 		}
 		
 		return result;
+		
 	}
 	
 	// read lines and add them to a String until a line matches the pattern
 	private static String[] readPart(Scanner scanner, String pattern, boolean saveContent)
 	{
+		
 		String content = "";
 		String lastLine = getLine(scanner);
 		
@@ -191,11 +194,13 @@ public abstract class FileReadManager
 		}
 		
 		return new String[] {content, lastLine};
+		
 	}
 	
 	// returns the next line that is not empty or "" if it reaches end of file
 	private static String getLine(Scanner scanner)
 	{
+		
 		String lastLine = "";
 		
 		while(lastLine.isBlank() && scanner.hasNextLine())
@@ -205,6 +210,7 @@ public abstract class FileReadManager
 		
 		if(lastLine.isBlank()) return ""; // end of file
 		else return lastLine; // non-empty line found
+		
 	}
 	
 }

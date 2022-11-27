@@ -5,7 +5,7 @@ public abstract class TextProcessor
 	
 	public static String removeSpecialCharacters(String str)
 	{
-		return str.replaceAll("[?.,:;()\\[\\]\" _-]+", " ");
+		return str.replaceAll("[!?#$%/='^.,:;()\\[\\]\" _-]+", " ");
 	}
 	
 	public static String fixWhitespaces(String str)
@@ -25,6 +25,7 @@ public abstract class TextProcessor
 	
 	public static String extractFirstNWords(String str, int n)
 	{
+		
 		if(n <= 0) return str;
 		
 		String[] tokens = str.split(" ");
@@ -41,5 +42,6 @@ public abstract class TextProcessor
 		}
 		
 		return result;
+		
 	}
 }
