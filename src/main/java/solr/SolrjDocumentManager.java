@@ -77,16 +77,6 @@ public abstract class SolrjDocumentManager
         
         SolrDocumentList docs = solr.query(query).getResults();
         
-        
-        if(docs.size() < 1)
-        {
-        	System.out.println();
-        	System.out.println("PROBLEM: " + docs.size() + " / " + numRows);
-        	System.out.println(queryString);
-        	System.out.println();
-        }
-        
-        
         LinkedList<String[]> docList = new LinkedList<String[]>();
         for(int i = 0; i < docs.size(); i++)
         {

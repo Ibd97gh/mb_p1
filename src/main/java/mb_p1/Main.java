@@ -20,13 +20,6 @@ public class Main
 		
 		try
 		{
-			/*
-			LinkedList<String[]> documents = CISIReader.readDocumentFile("./corpus/CISI.ALL");
-			final HashMap<String, Integer> dictionary = new HashMap<String, Integer>();
-			TextProcessor.fillDictionary(documents, dictionary);
-			PriorityQueue<String> vocabulary = TextProcessor.getSortedVocabulary(dictionary);
-			*/
-			
 			//clearSolrCollection();
 			//insertDocuments();
 			makeTRECFile();
@@ -80,8 +73,7 @@ public class Main
 
 		// create a dictionary to select the least frequent terms
 		LinkedList<String[]> documents = CISIReader.readQueryFile("./corpus/CISI.QRY");
-		final HashMap<String, Integer> dictionary = new HashMap<String, Integer>();
-		TextProcessor.fillDictionary(documents, dictionary);
+		final HashMap<String, Integer> dictionary = TextProcessor.getDictionary(documents);
 		
 		// make each query and 
 		for(String[] query: queries) // query[0]: id, query[1]: title, query[2]: author, query[3]: content
@@ -108,9 +100,9 @@ public class Main
 
 				documentLine = documentLine + query[0].toString(); // query id
 				documentLine = documentLine + "\t" + "Q0"; // iteration (we only do 1)
-				documentLine = documentLine + "\t" + docs.get(i)[0].toString(); // document id
+				documentLine = documentLine + "\t" + docs.get(i)[0]; // document id
 				documentLine = documentLine + "\t" + (i+1); // ranking
-				documentLine = documentLine + "\t" + docs.get(i)[1].toString(); // document score
+				documentLine = documentLine + "\t" + docs.get(i)[1]; // document score
 				documentLine = documentLine + "\t" + "IVAN"; // team
 				
 				filewtr.addLine(documentLine);
@@ -127,8 +119,7 @@ public class Main
 		// String[0]: id, String[1]: title, String[2]: author, String[3]: content, String[4]: other
 		LinkedList<String[]> documents = CISIReader.readQueryFile("./corpus/CISI.QRY");
 
-		final HashMap<String, Integer> dictionary = new HashMap<String, Integer>();
-		TextProcessor.fillDictionary(documents, dictionary);
+		final HashMap<String, Integer> dictionary = TextProcessor.getDictionary(documents);
 		PriorityQueue<String> queue = TextProcessor.getSortedVocabulary(dictionary);
 
 		while(!queue.isEmpty())
@@ -143,8 +134,7 @@ public class Main
 		// String[0]: id, String[1]: title, String[2]: author, String[3]: content
 		LinkedList<String[]> documents = CISIReader.readDocumentFile("./corpus/CISI.ALL");
 
-		final HashMap<String, Integer> dictionary = new HashMap<String, Integer>();
-		TextProcessor.fillDictionary(documents, dictionary);
+		final HashMap<String, Integer> dictionary = TextProcessor.getDictionary(documents);
 		PriorityQueue<String> queue = TextProcessor.getSortedVocabulary(dictionary);
 
 		while(!queue.isEmpty())
