@@ -67,8 +67,10 @@ public abstract class TextProcessor
 		
 	}
 	
-	public static void fillDictionary(LinkedList<String[]> documents, final HashMap<String, Integer> dictionary)
+	public static HashMap<String, Integer> getDictionary(LinkedList<String[]> documents)
 	{
+		HashMap<String, Integer> dictionary = new HashMap<String, Integer>();
+		
 		for(String[] texts: documents)
 		{
 			for(int i = 0; i < 4; i++)
@@ -88,6 +90,8 @@ public abstract class TextProcessor
 				}
 			}
 		}
+		
+		return dictionary;
 	}
 	
 	public static PriorityQueue<String> getSortedVocabulary(final HashMap<String, Integer> dictionary)
