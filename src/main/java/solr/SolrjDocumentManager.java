@@ -49,8 +49,15 @@ public abstract class SolrjDocumentManager
 		{
 			if(!inputFieldValues[i].isBlank())
 			{
-				if(queryString.isBlank()) queryString = "(" + inputFields[i] + ":" + inputFieldValues[i] + ")^" + inputFieldWeights[i];
-				else queryString = queryString + " AND (" + inputFields[i] + ":" + inputFieldValues[i] + ")^" + inputFieldWeights[i];
+				String[] tokens = TextProcessor.splitString(inputFieldValues[i]);
+				String valuesWithOr = "";
+				for(int j = 0; j < tokens.length; j++)
+				{
+					if(valuesWithOr.isBlank()) valuesWithOr = inputFields[i] + ":" + tokens[j];
+					else valuesWithOr = valuesWithOr + " OR " + inputFields[i] + ":" + tokens[j];
+				}
+				if(queryString.isBlank()) queryString = "(" + valuesWithOr + ")^" + inputFieldWeights[i];
+				else queryString = queryString + " OR (" + valuesWithOr + ")^" + inputFieldWeights[i];
 			}
 		}
 		
