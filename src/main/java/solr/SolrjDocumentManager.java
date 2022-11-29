@@ -10,6 +10,9 @@ import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrInputDocument;
+
+import mb_p1.TextProcessor;
+
 import org.apache.solr.common.SolrDocumentList;
 
 @SuppressWarnings("deprecation")
@@ -47,11 +50,11 @@ public abstract class SolrjDocumentManager
 			if(!inputFieldValues[i].isBlank())
 			{
 				if(queryString.isBlank()) queryString = "(" + inputFields[i] + ":" + inputFieldValues[i] + ")^" + inputFieldWeights[i];
-				else queryString = queryString + " OR (" + inputFields[i] + ":" + inputFieldValues[i] + ")^" + inputFieldWeights[i];
+				else queryString = queryString + " AND (" + inputFields[i] + ":" + inputFieldValues[i] + ")^" + inputFieldWeights[i];
 			}
 		}
 		
-		System.out.println(queryString);
+		//System.out.println(queryString);
 		
 		query.setRows(numRows);
         query.setQuery(queryString);
@@ -73,6 +76,16 @@ public abstract class SolrjDocumentManager
         }
         
         SolrDocumentList docs = solr.query(query).getResults();
+        
+        
+        if(docs.size() < 1)
+        {
+        	System.out.println();
+        	System.out.println("PROBLEM: " + docs.size() + " / " + numRows);
+        	System.out.println(queryString);
+        	System.out.println();
+        }
+        
         
         LinkedList<String[]> docList = new LinkedList<String[]>();
         for(int i = 0; i < docs.size(); i++)

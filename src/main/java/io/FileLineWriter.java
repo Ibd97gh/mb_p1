@@ -4,12 +4,12 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
-public class FileWriteManager
+public class FileLineWriter
 {
 	
 	FileWriter writer;
 	
-	public FileWriteManager(String path) throws IOException
+	public FileLineWriter(String path) throws IOException
 	{
 		
 		File file = new File(path);

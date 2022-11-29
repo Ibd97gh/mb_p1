@@ -1,7 +1,11 @@
 package mb_p1;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.PriorityQueue;
 
 import org.apache.solr.client.solrj.SolrServerException;
 
@@ -16,9 +20,18 @@ public class Main
 		
 		try
 		{
+			/*
+			LinkedList<String[]> documents = CISIReader.readDocumentFile("./corpus/CISI.ALL");
+			final HashMap<String, Integer> dictionary = new HashMap<String, Integer>();
+			TextProcessor.fillDictionary(documents, dictionary);
+			PriorityQueue<String> vocabulary = TextProcessor.getSortedVocabulary(dictionary);
+			*/
+			
 			//clearSolrCollection();
 			//insertDocuments();
 			makeTRECFile();
+			//showQueryVocabulary();
+			//showDocumentVocabulary();
 		}
 		catch(Exception exception)
 		{
@@ -36,7 +49,7 @@ public class Main
 	private static void insertDocuments() throws SolrServerException, IOException, Exception
 	{
 		
-		LinkedList<String[]> list = FileReadManager.readDocumentFile("./corpus/CISI.ALL");
+		LinkedList<String[]> list = CISIReader.readDocumentFile("./corpus/CISI.ALL");
 		String[] attributes = {"id", "title", "author", "content"};
 		
 		if(list == null) return;
@@ -45,7 +58,7 @@ public class Main
 		{
 			
 			SolrjDocumentManager.insert("coleccion", attributes, s);
-			System.out.println("Inserted document " + s[0]);
+			System.out.println("Interted document " + s[0]);
 			
 		}
 		
@@ -55,37 +68,40 @@ public class Main
 	{
 		
 		// file writer
-		FileWriteManager filewtr = new FileWriteManager("./corpus/trec_solr_file.trec");
+		FileLineWriter filewtr = new FileLineWriter("./corpus/trec_solr_file.trec");
 		
 		// query properties
-		String[] fields = {"id", "score"};
-		String[] filters = {};
-		int numRows = 10;
+		String[] fields = {"id", "score"}; // fields we need
+		String[] filters = {}; // filters we apply
+		int numRows = 50;
 		
 		// read query file
-		LinkedList<String[]> queries = FileReadManager.readQueryFile("./corpus/CISI.QRY");
+		LinkedList<String[]> queries = CISIReader.readQueryFile("./corpus/CISI.QRY");
+
+		// create a dictionary to select the least frequent terms
+		LinkedList<String[]> documents = CISIReader.readQueryFile("./corpus/CISI.QRY");
+		final HashMap<String, Integer> dictionary = new HashMap<String, Integer>();
+		TextProcessor.fillDictionary(documents, dictionary);
 		
 		// make each query and 
-		for(String[] query: queries)
+		for(String[] query: queries) // query[0]: id, query[1]: title, query[2]: author, query[3]: content
 		{
 			// we dont use the 112th query
 			if(query[0].equals("112")) break;
 			
 			// create the query
 			String[] queryFields = {"title", "author", "content"};
-			String[] queryValues = {TextProcessor.fixString(query[1]), TextProcessor.fixString(query[2]), TextProcessor.fixString(query[3])};
+			String[] queryValues = {TextProcessor.extractTerms(query[1]), TextProcessor.extractTerms(query[2]), TextProcessor.extractTerms(query[3])};
 			String[] queryWeights = {"0.8", "0.8", "1.0"};
 			
-			//System.out.println(TextProcessor.fixString(query[1]));
-			//System.out.println(TextProcessor.fixString(query[2]));
-			//System.out.println(TextProcessor.fixString(query[3]));
+			//queryValues[0] = TextProcessor.getNLeastFrequentTerms(queryValues[0], 3, dictionary);
+			//queryValues[1] = TextProcessor.getNLeastFrequentTerms(queryValues[1], 3, dictionary);
+			//queryValues[2] = TextProcessor.getNLeastFrequentTerms(queryValues[2], 10, dictionary);
 			
-			//System.out.println();
-			//System.out.println();
-			
-			// query
-			LinkedList<String[]> docs = SolrjDocumentManager.query("coleccion", queryFields, queryValues, queryWeights,filters, fields, numRows);
-			
+			// get the documents retrieved
+			LinkedList<String[]> docs = SolrjDocumentManager.query("coleccion", queryFields, queryValues, queryWeights, filters, fields, numRows);
+				
+			// write documents to trec file
 			for(int i = 0; i < docs.size(); i++)
 			{
 				String documentLine = "";
@@ -106,4 +122,35 @@ public class Main
 		
 	}
 	
+	private static void showQueryVocabulary() throws FileNotFoundException, Exception
+	{
+		// String[0]: id, String[1]: title, String[2]: author, String[3]: content, String[4]: other
+		LinkedList<String[]> documents = CISIReader.readQueryFile("./corpus/CISI.QRY");
+
+		final HashMap<String, Integer> dictionary = new HashMap<String, Integer>();
+		TextProcessor.fillDictionary(documents, dictionary);
+		PriorityQueue<String> queue = TextProcessor.getSortedVocabulary(dictionary);
+
+		while(!queue.isEmpty())
+		{
+			String str = queue.poll();
+			System.out.println(str + " - " + dictionary.get(str));
+		}
+	}
+	
+	private static void showDocumentVocabulary() throws FileNotFoundException, Exception
+	{
+		// String[0]: id, String[1]: title, String[2]: author, String[3]: content
+		LinkedList<String[]> documents = CISIReader.readDocumentFile("./corpus/CISI.ALL");
+
+		final HashMap<String, Integer> dictionary = new HashMap<String, Integer>();
+		TextProcessor.fillDictionary(documents, dictionary);
+		PriorityQueue<String> queue = TextProcessor.getSortedVocabulary(dictionary);
+
+		while(!queue.isEmpty())
+		{
+			String str = queue.poll();
+			System.out.println(str + " - " + dictionary.get(str));
+		}
+	}
 }

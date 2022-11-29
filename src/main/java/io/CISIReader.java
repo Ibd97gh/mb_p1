@@ -4,9 +4,10 @@ import java.io.*;
 import java.util.*;
 import java.util.LinkedList;
 
-public abstract class FileReadManager
+public abstract class CISIReader
 {
 	// reads a document file in cisi format
+	// returns a LinkedList  of String arrays with: String[0]: id, String[1]: title, String[2]: author, String[3]: content
 	public static LinkedList<String[]> readDocumentFile(String path) throws Exception, FileNotFoundException
 	{
 		
@@ -19,7 +20,6 @@ public abstract class FileReadManager
 		
 		Scanner scanner = new Scanner(new File(path));
 
-		int n = 0;
 		String lastLine = getLine(scanner);
 		LinkedList<String[]> result = new LinkedList<String[]>();
 		
@@ -80,9 +80,6 @@ public abstract class FileReadManager
 			
 			String[] document = {doc_id, doc_title, doc_author, doc_content};
 			result.add(document);
-			
-			n++;
-			System.out.println("Read document " + n);
 		}
 		
 		return result;
@@ -90,6 +87,7 @@ public abstract class FileReadManager
 	}
 	
 	// reads a query file in cisi format
+	// returns a LinkedList  of String arrays with: String[0]: id, String[1]: title, String[2]: author, String[3]: content, String[4]: other
 	public static LinkedList<String[]> readQueryFile(String path) throws Exception, FileNotFoundException
 	{
 	
@@ -102,7 +100,6 @@ public abstract class FileReadManager
 
 		Scanner scanner = new Scanner(new File(path));
 
-		int n = 0;
 		String lastLine = getLine(scanner);
 		LinkedList<String[]> result = new LinkedList<String[]>();
 		
@@ -130,7 +127,7 @@ public abstract class FileReadManager
 			// while last line does not belong to the next document
 			while(!lastLine.strip().matches("\\.I +[0-9]+") && !lastLine.isEmpty())
 			{
-				String firstLinePattern = " *\\.[ITAWX] *[0-9]* *"; // these lines should not have \t characters
+				String firstLinePattern = " *\\.[ITAWB] *[0-9]* *"; // these lines should not have \t characters
 				
 				String[] part = readPart(scanner, firstLinePattern, true);
 				
@@ -166,9 +163,6 @@ public abstract class FileReadManager
 			
 			String[] document = {doc_id, doc_title, doc_author, doc_content, doc_other};
 			result.add(document);
-			
-			n++;
-			System.out.println("Read query " + n);
 		}
 		
 		return result;
